@@ -54,6 +54,7 @@ const Register = () => {
             mobileNumber: formData.mobileNumber,
             shopAddress: formData.shopAddress,
             pinCode: formData.pinCode,
+            revenue: formData.revenue ? Number(formData.revenue) : 0,
           };
 
       await register(userData, userType);

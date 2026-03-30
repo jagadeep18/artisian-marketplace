@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Client, Artisan, AuthState } from '../types';
+import { apiService } from '../services/apiService';
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
@@ -29,69 +30,56 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     error: null,
   });
 
+  // Initialize auth state on mount
   useEffect(() => {
-    // Check for existing session
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
+    const initAuth = async () => {
       try {
-        const user = JSON.parse(savedUser);
-        setAuthState({ user, loading: false, error: null });
+        const token = localStorage.getItem('token');
+        if (token) {
+          try {
+            const currentUser = await apiService.getCurrentUser();
+            if (currentUser) {
+              localStorage.setItem('user', JSON.stringify(currentUser));
+              setAuthState({ user: currentUser, loading: false, error: null });
+              return;
+            }
+          } catch (error) {
+            // Server might be down - fall back to cached user
+            const cachedUser = localStorage.getItem('user');
+            if (cachedUser) {
+              setAuthState({ user: JSON.parse(cachedUser), loading: false, error: null });
+              return;
+            }
+          }
+        }
+        setAuthState({ user: null, loading: false, error: null });
       } catch (error) {
-        localStorage.removeItem('user');
         setAuthState({ user: null, loading: false, error: null });
       }
-    } else {
-      setAuthState({ user: null, loading: false, error: null });
-    }
+    };
+
+    initAuth();
   }, []);
 
   const login = async (email: string, password: string): Promise<void> => {
     setAuthState(prev => ({ ...prev, loading: true, error: null }));
     
     try {
-      // Simulate API call - In real app, this would be a backend call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const data = await apiService.login(email, password);
       
-      // Mock user data - In real app, this would come from your backend
-      const mockUsers = [
-        {
-          id: '1',
-          email: 'client@example.com',
-          role: 'client' as const,
-          fullName: 'John Doe',
-          mobileNumber: '+91 9876543210',
-          createdAt: new Date(),
-        },
-        {
-          id: '2',
-          email: 'artisan@example.com',
-          role: 'artisan' as const,
-          shopName: 'Traditional Crafts',
-          ownerName: 'Priya Sharma',
-          mobileNumber: '+91 9876543211',
-          shopAddress: '123 Craft Street, Jaipur',
-          pinCode: '302001',
-          verified: true,
-          rating: 4.8,
-          totalReviews: 156,
-          createdAt: new Date(),
-        }
-      ];
-
-      const user = mockUsers.find(u => u.email === email);
-      if (!user) {
-        throw new Error('Invalid email or password');
+      if (data.user && data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        setAuthState({ user: data.user, loading: false, error: null });
       }
-
-      localStorage.setItem('user', JSON.stringify(user));
-      setAuthState({ user, loading: false, error: null });
-    } catch (error) {
+    } catch (err: any) {
+      const errorMsg = err.message || 'Login failed';
       setAuthState(prev => ({ 
         ...prev, 
         loading: false, 
-        error: error instanceof Error ? error.message : 'Login failed' 
+        error: errorMsg
       }));
-      throw error;
+      throw err;
     }
   };
 
@@ -99,36 +87,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setAuthState(prev => ({ ...prev, loading: true, error: null }));
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const newUser = {
-        id: Date.now().toString(),
-        email: userData.email,
+      const data = await apiService.register(userData.email, userData.password, {
         role,
-        createdAt: new Date(),
-        ...userData,
-      };
+        fullName: userData.fullName,
+        mobileNumber: userData.mobileNumber,
+        shopName: userData.shopName,
+        ownerName: userData.ownerName,
+        shopAddress: userData.shopAddress,
+        pinCode: userData.pinCode,
+        revenue: userData.revenue,
+      });
 
-      if (role === 'artisan') {
-        (newUser as any).revenue = parseInt(userData.revenue) || 0;
+      if (data.user && data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        setAuthState({ user: data.user, loading: false, error: null });
       }
-
-      localStorage.setItem('user', JSON.stringify(newUser));
-      setAuthState({ user: newUser, loading: false, error: null });
-    } catch (error) {
+    } catch (err: any) {
+      const errorMsg = err.message || 'Registration failed';
       setAuthState(prev => ({ 
         ...prev, 
         loading: false, 
-        error: error instanceof Error ? error.message : 'Registration failed' 
+        error: errorMsg 
       }));
-      throw error;
+      throw err;
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('user');
-    setAuthState({ user: null, loading: false, error: null });
+  const logout = async () => {
+    try {
+      apiService.logout();
+      localStorage.removeItem('user');
+      setAuthState({ user: null, loading: false, error: null });
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const updateProfile = async (userData: any): Promise<void> => {
@@ -137,18 +130,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setAuthState(prev => ({ ...prev, loading: true, error: null }));
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const updatedUser = await apiService.updateProfile(userData);
       
-      const updatedUser = { ...authState.user, ...userData };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-      setAuthState({ user: updatedUser, loading: false, error: null });
-    } catch (error) {
+      if (updatedUser) {
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+        setAuthState({ user: updatedUser, loading: false, error: null });
+      }
+    } catch (err: any) {
+      const errorMsg = err.message || 'Update failed';
       setAuthState(prev => ({ 
         ...prev, 
         loading: false, 
-        error: error instanceof Error ? error.message : 'Update failed' 
+        error: errorMsg 
       }));
-      throw error;
+      throw err;
     }
   };
 

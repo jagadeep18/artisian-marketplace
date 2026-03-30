@@ -1,121 +1,45 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, MapPin, Star, Heart, ShoppingBag, Phone, Mail } from 'lucide-react';
-import { Product, ProductFilters, Artisan } from '../types';
+import { Search, Filter, MapPin, Star, Heart, ShoppingBag, Phone, Mail, X } from 'lucide-react';
+import { Product, ProductFilters } from '../types';
+import { apiService } from '../services/apiService';
+import { useAuth } from '../contexts/AuthContext';
 
 const Marketplace = () => {
+  const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [filters, setFilters] = useState<ProductFilters>({});
   const [showFilters, setShowFilters] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-
-  // Mock data - In real app, this would come from your backend
-  const mockProducts: Product[] = [
-    {
-      id: '1',
-      name: 'Traditional Rajasthani Block Print Saree',
-      description: 'Exquisite handwoven saree featuring traditional Rajasthani motifs, crafted with natural dyes and time-honored techniques.',
-      price: 4500,
-      images: ['https://images.pexels.com/photos/8148577/pexels-photo-8148577.jpeg?auto=compress&cs=tinysrgb&w=800'],
-      artisanId: '2',
-      artisan: {
-        id: '2',
-        email: 'artisan@example.com',
-        role: 'artisan',
-        shopName: 'Traditional Crafts',
-        ownerName: 'Priya Sharma',
-        mobileNumber: '+91 9876543211',
-        shopAddress: '123 Craft Street, Jaipur, Rajasthan',
-        pinCode: '302001',
-        verified: true,
-        rating: 4.8,
-        totalReviews: 156,
-        createdAt: new Date(),
-      },
-      category: 'Textiles',
-      materials: ['Cotton', 'Natural Dyes'],
-      inStock: true,
-      featured: true,
-      createdAt: new Date(),
-      aiGenerated: {
-        title: true,
-        description: true,
-        story: true,
-        marketing: true,
-      },
-    },
-    {
-      id: '2',
-      name: 'Handwoven Cotton Table Runner',
-      description: 'Beautiful table runner with intricate geometric patterns, perfect for adding traditional charm to your dining space.',
-      price: 1200,
-      images: ['https://images.pexels.com/photos/6069112/pexels-photo-6069112.jpeg?auto=compress&cs=tinysrgb&w=800'],
-      artisanId: '2',
-      artisan: {
-        id: '2',
-        email: 'artisan@example.com',
-        role: 'artisan',
-        shopName: 'Traditional Crafts',
-        ownerName: 'Priya Sharma',
-        mobileNumber: '+91 9876543211',
-        shopAddress: '123 Craft Street, Jaipur, Rajasthan',
-        pinCode: '302001',
-        verified: true,
-        rating: 4.8,
-        totalReviews: 156,
-        createdAt: new Date(),
-      },
-      category: 'Home Decor',
-      materials: ['Cotton'],
-      inStock: true,
-      featured: false,
-      createdAt: new Date(),
-      aiGenerated: {
-        title: true,
-        description: true,
-        story: false,
-        marketing: true,
-      },
-    },
-    {
-      id: '3',
-      name: 'Handmade Pottery Vase',
-      description: 'Elegant terracotta vase with traditional Bengali designs, perfect for displaying flowers or as a decorative piece.',
-      price: 1800,
-      images: ['https://images.pexels.com/photos/1124725/pexels-photo-1124725.jpeg?auto=compress&cs=tinysrgb&w=800'],
-      artisanId: '3',
-      artisan: {
-        id: '3',
-        email: 'potter@example.com',
-        role: 'artisan',
-        shopName: 'Bengal Pottery',
-        ownerName: 'Ravi Das',
-        mobileNumber: '+91 9876543212',
-        shopAddress: '456 Potter Lane, Kolkata, West Bengal',
-        pinCode: '700001',
-        verified: true,
-        rating: 4.6,
-        totalReviews: 89,
-        createdAt: new Date(),
-      },
-      category: 'Pottery',
-      materials: ['Clay', 'Natural Glazes'],
-      inStock: true,
-      featured: true,
-      createdAt: new Date(),
-      aiGenerated: {
-        title: false,
-        description: true,
-        story: true,
-        marketing: false,
-      },
-    },
-  ];
+  const [sortBy, setSortBy] = useState<string>('featured');
+  const [favouriteIds, setFavouriteIds] = useState<Set<string>>(new Set());
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
   useEffect(() => {
-    setProducts(mockProducts);
-    setFilteredProducts(mockProducts);
+    const fetchProducts = async () => {
+      try {
+        const data = await apiService.getProducts();
+        setProducts(data);
+        setFilteredProducts(data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
+    fetchProducts();
   }, []);
+
+  useEffect(() => {
+    const fetchFavourites = async () => {
+      if (!user) return;
+      try {
+        const ids = await apiService.getFavouriteIds();
+        setFavouriteIds(new Set(ids));
+      } catch (error) {
+        // User might not be logged in or token expired
+      }
+    };
+    fetchFavourites();
+  }, [user]);
 
   useEffect(() => {
     let filtered = products;
@@ -124,7 +48,7 @@ const Marketplace = () => {
       filtered = filtered.filter(product =>
         product.name.toLowerCase().includes(filters.search!.toLowerCase()) ||
         product.description.toLowerCase().includes(filters.search!.toLowerCase()) ||
-        product.category.toLowerCase().includes(filters.search!.toLowerCase())
+        (product.category && product.category.toLowerCase().includes(filters.search!.toLowerCase()))
       );
     }
 
@@ -142,14 +66,60 @@ const Marketplace = () => {
 
     if (filters.location) {
       filtered = filtered.filter(product =>
-        product.artisan?.shopAddress.toLowerCase().includes(filters.location!.toLowerCase())
+        product.artisan?.shopAddress?.toLowerCase().includes(filters.location!.toLowerCase())
       );
     }
 
-    setFilteredProducts(filtered);
-  }, [filters, products]);
+    let sorted = [...filtered];
+    switch (sortBy) {
+      case 'price-low-high':
+        sorted.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-high-low':
+        sorted.sort((a, b) => b.price - a.price);
+        break;
+      case 'newest':
+        sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        break;
+      case 'rating':
+        sorted.sort((a, b) => (b.artisan?.rating || 0) - (a.artisan?.rating || 0));
+        break;
+      case 'featured':
+      default:
+        sorted.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+        break;
+    }
+
+    setFilteredProducts(sorted);
+  }, [filters, products, sortBy]);
+
+  const toggleFavourite = async (productId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user) {
+      alert('Please login to add favourites');
+      return;
+    }
+
+    try {
+      if (favouriteIds.has(productId)) {
+        await apiService.removeFavourite(productId);
+        setFavouriteIds(prev => {
+          const next = new Set(prev);
+          next.delete(productId);
+          return next;
+        });
+      } else {
+        await apiService.addFavourite(productId);
+        setFavouriteIds(prev => new Set(prev).add(productId));
+      }
+    } catch (error) {
+      console.error('Error toggling favourite:', error);
+    }
+  };
 
   const categories = ['All', 'Textiles', 'Pottery', 'Home Decor', 'Jewelry', 'Woodwork'];
+
+  const artisan = selectedProduct?.artisan as any;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -263,12 +233,15 @@ const Marketplace = () => {
               <p className="text-gray-600 dark:text-gray-400">
                 Showing {filteredProducts.length} of {products.length} products
               </p>
-              <select className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                <option>Sort by: Featured</option>
-                <option>Price: Low to High</option>
-                <option>Price: High to Low</option>
-                <option>Newest First</option>
-                <option>Rating: High to Low</option>
+              <select 
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                <option value="featured">Sort by: Featured</option>
+                <option value="price-low-high">Price: Low to High</option>
+                <option value="price-high-low">Price: High to Low</option>
+                <option value="newest">Newest First</option>
+                <option value="rating">Rating: High to Low</option>
               </select>
             </div>
 
@@ -290,7 +263,7 @@ const Marketplace = () => {
                   >
                     <div className="aspect-square overflow-hidden relative">
                       <img
-                        src={product.images[0]}
+                        src={product.images?.[0]}
                         alt={product.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
@@ -299,8 +272,17 @@ const Marketplace = () => {
                           Featured
                         </div>
                       )}
-                      <button className="absolute top-3 right-3 w-10 h-10 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                        <Heart className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                      <button
+                        onClick={(e) => toggleFavourite(product.id, e)}
+                        className="absolute top-3 right-3 w-10 h-10 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-all"
+                      >
+                        <Heart
+                          className={`h-5 w-5 transition-colors ${
+                            favouriteIds.has(product.id)
+                              ? 'text-red-500 fill-red-500'
+                              : 'text-gray-600 dark:text-gray-400'
+                          }`}
+                        />
                       </button>
                     </div>
                     
@@ -309,7 +291,7 @@ const Marketplace = () => {
                         <span className="text-sm text-orange-600 font-medium">{product.category}</span>
                         <div className="flex items-center space-x-1">
                           <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                          <span className="text-sm text-gray-600 dark:text-gray-400">{product.artisan?.rating}</span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">{product.artisan?.rating || 0}</span>
                         </div>
                       </div>
                       
@@ -321,16 +303,18 @@ const Marketplace = () => {
                         {product.description}
                       </p>
                       
-                      <div className="flex items-center space-x-2 mb-4">
-                        <MapPin className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                          {product.artisan?.shopAddress.split(',').slice(-2).join(',')}
-                        </span>
-                      </div>
+                      {product.artisan?.shopAddress && (
+                        <div className="flex items-center space-x-2 mb-4">
+                          <MapPin className="h-4 w-4 text-gray-400" />
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            {product.artisan.shopAddress.split(',').slice(-2).join(',')}
+                          </span>
+                        </div>
+                      )}
                       
                       <div className="flex items-center justify-between">
                         <div>
-                          <span className="text-2xl font-bold text-gray-900 dark:text-white">₹{product.price.toLocaleString()}</span>
+                          <span className="text-2xl font-bold text-gray-900 dark:text-white">₹{product.price?.toLocaleString()}</span>
                         </div>
                         <button className="flex items-center px-4 py-2 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors">
                           <ShoppingBag className="h-4 w-4 mr-2" />
@@ -357,81 +341,127 @@ const Marketplace = () => {
                   onClick={() => setSelectedProduct(null)}
                   className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                 >
-                  ✕
+                  <X className="h-6 w-6" />
                 </button>
               </div>
               
               <div className="grid md:grid-cols-2 gap-8">
                 <div>
                   <img
-                    src={selectedProduct.images[0]}
+                    src={selectedProduct.images?.[0]}
                     alt={selectedProduct.name}
-                    className="w-full aspect-square object-cover rounded-lg"
+                    className="w-full aspect-square object-cover rounded-lg cursor-zoom-in hover:opacity-90 transition-opacity"
+                    onClick={() => setZoomedImage(selectedProduct.images?.[0])}
                   />
                 </div>
                 
                 <div className="space-y-6">
                   <div>
                     <span className="text-3xl font-bold text-gray-900 dark:text-white">
-                      ₹{selectedProduct.price.toLocaleString()}
+                      ₹{selectedProduct.price?.toLocaleString()}
                     </span>
                   </div>
                   
                   <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
                     {selectedProduct.description}
                   </p>
+
+                  {selectedProduct.category && (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">Category:</span>
+                      <span className="text-sm font-medium text-orange-600">{selectedProduct.category}</span>
+                    </div>
+                  )}
+
+                  {selectedProduct.materials && selectedProduct.materials.length > 0 && (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">Materials:</span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">{selectedProduct.materials.join(', ')}</span>
+                    </div>
+                  )}
                   
+                  {/* Artisan Details */}
                   <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Artisan Details</h3>
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center">
-                          <span className="text-orange-600 font-semibold">
-                            {selectedProduct.artisan?.ownerName.split(' ').map(n => n[0]).join('')}
-                          </span>
+                    {artisan ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center">
+                            <span className="text-orange-600 font-semibold">
+                              {artisan.ownerName
+                                ? artisan.ownerName.split(' ').map((n: string) => n[0]).join('')
+                                : 'A'}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-white">{artisan.shopName || 'Artisan Shop'}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">by {artisan.ownerName || 'Artisan'}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-white">{selectedProduct.artisan?.shopName}</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">by {selectedProduct.artisan?.ownerName}</p>
+                        
+                        {artisan.shopAddress && (
+                          <div className="flex items-center space-x-2">
+                            <MapPin className="h-4 w-4 text-gray-400" />
+                            <span className="text-sm text-gray-600 dark:text-gray-400">{artisan.shopAddress}</span>
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center space-x-4">
+                          {artisan.mobileNumber && (
+                            <a
+                              href={`tel:${artisan.mobileNumber}`}
+                              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                            >
+                              <Phone className="h-4 w-4 mr-2" />
+                              Call
+                            </a>
+                          )}
                         </div>
                       </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">{selectedProduct.artisan?.shopAddress}</span>
-                      </div>
-                      
-                      <div className="flex items-center space-x-4">
-                        <a
-                          href={`tel:${selectedProduct.artisan?.mobileNumber}`}
-                          className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                        >
-                          <Phone className="h-4 w-4 mr-2" />
-                          Call
-                        </a>
-                        <a
-                          href={`mailto:${selectedProduct.artisan?.email}`}
-                          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                          <Mail className="h-4 w-4 mr-2" />
-                          Email
-                        </a>
-                      </div>
-                    </div>
+                    ) : (
+                      <p className="text-gray-500 dark:text-gray-400 text-sm">Artisan information not available</p>
+                    )}
                   </div>
                   
                   <div className="flex space-x-4">
                     <button className="flex-1 bg-orange-600 text-white font-semibold py-3 rounded-lg hover:bg-orange-700 transition-colors">
                       Add to Cart
                     </button>
-                    <button className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                      <Heart className="h-5 w-5" />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavourite(selectedProduct.id, e);
+                      }}
+                      className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <Heart
+                        className={`h-5 w-5 ${
+                          favouriteIds.has(selectedProduct.id)
+                            ? 'text-red-500 fill-red-500'
+                            : ''
+                        }`}
+                      />
                     </button>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Image Zoom Modal */}
+      {zoomedImage && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] cursor-zoom-out"
+          onClick={() => setZoomedImage(null)}
+          onMouseLeave={() => setZoomedImage(null)}
+        >
+          <img
+            src={zoomedImage}
+            alt="Zoomed"
+            className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+          />
         </div>
       )}
     </div>

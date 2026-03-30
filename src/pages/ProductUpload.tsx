@@ -1,16 +1,31 @@
 import React, { useState } from 'react';
-import { Upload, Camera, Sparkles, Check, ArrowRight } from 'lucide-react';
-import { generateProductContent } from '../utils/aiMock';
+import { Camera, Sparkles, Check, ArrowRight } from 'lucide-react';
+import { apiService } from '../services/apiService';
+import { useNavigate } from 'react-router-dom';
 
 const ProductUpload = () => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [artisanInfo, setArtisanInfo] = useState({
-    name: '',
-    tradition: '',
-    material: '',
-    location: ''
+  
+  const [formData, setFormData] = useState({
+    title: '',
+    dressType: '',
+    description: '',
+    price: '',
+    color: '',
+    designType: '',
+    category: '',
+    location: '',
+    contactDetails: '',
+    shopName: '',
+    materialsUsed: '',
+    occasionType: '',
+    customizationAvailable: '',
+    deliveryOptions: '',
+    additionalNotes: ''
   });
+
   const [generatedContent, setGeneratedContent] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -28,20 +43,76 @@ const ProductUpload = () => {
 
   const handleGenerateContent = async () => {
     setIsGenerating(true);
-    
-    // Simulate AI processing time
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    const content = generateProductContent(artisanInfo);
-    setGeneratedContent(content);
-    setIsGenerating(false);
-    setStep(3);
+    try {
+      const posts = await apiService.generateAIPosts(formData);
+      setGeneratedContent({ marketing: posts });
+    } catch (e) {
+      console.error(e);
+      alert("Failed to generate AI content. Ensure GEMINI_API_KEY is in your server/.env");
+    } finally {
+      setIsGenerating(false);
+      setStep(3);
+    }
+  };
+
+  const handlePublishProduct = async () => {
+    try {
+      await apiService.createProduct({
+        name: formData.title,
+        description: formData.description,
+        price: Number(formData.price),
+        dressType: formData.dressType,
+        color: formData.color,
+        design: formData.designType,
+        category: formData.category,
+        location: formData.location,
+        contact: formData.contactDetails,
+        shopName: formData.shopName,
+        materials: [formData.materialsUsed],
+        occasion: formData.occasionType,
+        customization: formData.customizationAvailable,
+        delivery: formData.deliveryOptions,
+        images: [uploadedImage || 'https://images.pexels.com/photos/1124725/pexels-photo-1124725.jpeg'],
+        inStock: true,
+        featured: true,
+        aiPosts: generatedContent?.marketing,
+        aiGenerated: {
+          title: true,
+          description: true,
+          story: true,
+          marketing: true,
+        }
+      });
+      alert('Product published successfully!');
+      navigate('/artisan-dashboard');
+    } catch (error) {
+      console.error('Error publishing product:', error);
+      alert('Failed to publish product. Please try again.');
+    }
   };
 
   const steps = [
     { number: 1, title: 'Upload Image', description: 'Add photos of your craft' },
-    { number: 2, title: 'Artisan Details', description: 'Tell us about your tradition' },
-    { number: 3, title: 'AI Magic', description: 'Review generated content' }
+    { number: 2, title: 'Product Details', description: 'Provide information' },
+    { number: 3, title: 'AI Magic', description: 'Review promotional posts' }
+  ];
+
+  const formFields = [
+    { key: 'title', label: 'Product Title', placeholder: 'e.g., Royal Silk Saree' },
+    { key: 'dressType', label: 'Dress Type', placeholder: 'e.g., Saree, Lehenga' },
+    { key: 'description', label: 'Description', placeholder: 'Overview...' },
+    { key: 'price', label: 'Cost / Price (₹)', placeholder: 'e.g., 2999', type: 'number' },
+    { key: 'color', label: 'Color', placeholder: 'e.g., Royal Blue' },
+    { key: 'designType', label: 'Design Type', placeholder: 'e.g., Handwoven block print' },
+    { key: 'category', label: 'Category', placeholder: 'e.g., Ethnic Wear' },
+    { key: 'location', label: 'Location', placeholder: 'e.g., Hyderabad' },
+    { key: 'contactDetails', label: 'Contact Details (Mobile)', placeholder: 'e.g., 9876543210', type: 'number' },
+    { key: 'shopName', label: 'Shop Name', placeholder: 'e.g., Sri Lakshmi Boutique' },
+    { key: 'materialsUsed', label: 'Materials Used', placeholder: 'e.g., Pure Silk' },
+    { key: 'occasionType', label: 'Occasion Type', placeholder: 'e.g., Wedding, Festive' },
+    { key: 'customizationAvailable', label: 'Customization Available', placeholder: 'e.g., Yes, size alterations' },
+    { key: 'deliveryOptions', label: 'Delivery Options', placeholder: 'e.g., Pan India, 5-7 days' },
+    { key: 'additionalNotes', label: 'Additional Notes', placeholder: 'Any other info...' },
   ];
 
   return (
@@ -82,8 +153,7 @@ const ProductUpload = () => {
           <div className="text-center">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Upload Your Craft</h2>
             <p className="text-gray-600 mb-8">
-              Upload clear photos of your handmade products. Our AI will analyze them to create 
-              compelling descriptions and stories.
+              Upload clear photos of your handmade products.
             </p>
             
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 hover:border-orange-400 transition-colors">
@@ -114,9 +184,9 @@ const ProductUpload = () => {
       {step === 2 && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Tell Your Story</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Product Details</h2>
             <p className="text-gray-600">
-              Help our AI understand your craft tradition to create authentic, culturally-rich content.
+              Provide specific information about your product so the AI can generate high-quality marketing content.
             </p>
           </div>
 
@@ -131,66 +201,39 @@ const ProductUpload = () => {
           )}
 
           <div className="grid md:grid-cols-2 gap-6 mb-8">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Your Name
-              </label>
-              <input
-                type="text"
-                value={artisan.name}
-                onChange={(e) => setArtisanInfo({...artisanInfo, name: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                placeholder="e.g., Radha Devi"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Location
-              </label>
-              <input
-                type="text"
-                value={artisanInfo.location}
-                onChange={(e) => setArtisanInfo({...artisanInfo, location: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                placeholder="e.g., Bishnupur, West Bengal"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Craft Tradition
-              </label>
-              <input
-                type="text"
-                value={artisanInfo.tradition}
-                onChange={(e) => setArtisanInfo({...artisanInfo, tradition: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                placeholder="e.g., Traditional Bengali Pottery"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Primary Material
-              </label>
-              <input
-                type="text"
-                value={artisanInfo.material}
-                onChange={(e) => setArtisanInfo({...artisanInfo, material: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                placeholder="e.g., Natural Clay, Cotton, Silk"
-              />
-            </div>
+            {formFields.map(field => (
+              <div key={field.key} className={field.key === 'description' || field.key === 'additionalNotes' ? "md:col-span-2" : ""}>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {field.label}
+                </label>
+                <input
+                  type={field.type || "text"}
+                  required
+                  value={formData[field.key as keyof typeof formData]}
+                  onChange={(e) => setFormData({...formData, [field.key]: e.target.value})}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                  placeholder={field.placeholder}
+                />
+              </div>
+            ))}
           </div>
 
           <button
             onClick={handleGenerateContent}
-            disabled={!artisanInfo.name || !artisanInfo.tradition}
+            disabled={!Object.values(formData).every(val => val && val.toString().trim() !== '') || isGenerating}
             className="w-full bg-orange-600 text-white font-semibold py-4 rounded-lg hover:bg-orange-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center"
           >
-            <Sparkles className="h-5 w-5 mr-2" />
-            Generate AI Content
+            {isGenerating ? (
+              <>
+                <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                Generating via AI...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-5 w-5 mr-2" />
+                Generate AI Promotional Posts
+              </>
+            )}
           </button>
         </div>
       )}
@@ -198,76 +241,29 @@ const ProductUpload = () => {
       {/* Step 3: Generated Content */}
       {step === 3 && (
         <div className="space-y-6">
-          {isGenerating ? (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-              <div className="animate-spin w-12 h-12 border-4 border-orange-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">AI is Working Its Magic...</h3>
-              <p className="text-gray-600">Creating compelling content for your beautiful craft</p>
-            </div>
-          ) : generatedContent && (
+          {generatedContent && (
             <>
-              {/* Product Title & Description */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <Sparkles className="h-5 w-5 text-orange-600 mr-2" />
-                  Product Description
-                </h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
-                    <p className="text-lg font-semibold text-gray-900 bg-gray-50 p-3 rounded-lg">
-                      {generatedContent.title}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                    <p className="text-gray-700 bg-gray-50 p-4 rounded-lg leading-relaxed">
-                      {generatedContent.description}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Keywords</label>
-                    <div className="flex flex-wrap gap-2">
-                      {generatedContent.keywords.map((keyword: string, index: number) => (
-                        <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
-                          {keyword}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Artisan Story */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <Sparkles className="h-5 w-5 text-orange-600 mr-2" />
-                  Your Story
-                </h3>
-                <p className="text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-lg">
-                  {generatedContent.story}
-                </p>
-              </div>
-
               {/* Marketing Content */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
                   <Sparkles className="h-5 w-5 text-orange-600 mr-2" />
-                  Marketing Content
+                  Generated Promotional Posts
                 </h3>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Instagram Caption</label>
-                    <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg">
-                      {generatedContent.marketing.instagram}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">WhatsApp Message</label>
-                    <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg">
-                      {generatedContent.marketing.whatsapp}
-                    </p>
-                  </div>
+                
+                <div className="space-y-8">
+                  {Object.entries({
+                    'WhatsApp Post': generatedContent.marketing?.whatsapp,
+                    'Instagram Caption': generatedContent.marketing?.instagram,
+                    'Facebook Post': generatedContent.marketing?.facebook,
+                    'Marketplace Description': generatedContent.marketing?.marketplace,
+                  }).map(([platform, text]) => (
+                    <div key={platform}>
+                      <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">{platform}</label>
+                      <pre className="text-sm font-sans text-gray-800 bg-gray-50 p-4 rounded-lg whitespace-pre-wrap border border-gray-200">
+                        {text || 'Content could not be generated.'}
+                      </pre>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -279,7 +275,10 @@ const ProductUpload = () => {
                 >
                   Edit Details
                 </button>
-                <button className="px-8 py-3 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-all duration-200 flex items-center">
+                <button
+                  onClick={handlePublishProduct}
+                  className="px-8 py-3 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-all duration-200 flex items-center"
+                >
                   Publish Product
                   <ArrowRight className="h-5 w-5 ml-2" />
                 </button>

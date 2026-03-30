@@ -19,6 +19,9 @@ export interface Artisan extends User {
   shopAddress: string;
   pinCode: string;
   revenue: number;
+  verified?: boolean;
+  rating?: number;
+  totalReviews?: number;
 }
 
 export interface Product {
@@ -31,9 +34,24 @@ export interface Product {
   artisan?: Artisan;
   category: string;
   materials: string[];
+  dressType?: string;
+  color?: string;
+  design?: string;
+  location?: string;
+  contact?: string;
+  shopName?: string;
+  occasion?: string;
+  customization?: string;
+  delivery?: string;
   inStock: boolean;
   featured: boolean;
   createdAt: Date;
+  aiPosts?: {
+    whatsapp?: string;
+    instagram?: string;
+    facebook?: string;
+    marketplace?: string;
+  };
   aiGenerated: {
     title: boolean;
     description: boolean;
