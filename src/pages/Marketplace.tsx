@@ -120,7 +120,18 @@ const Marketplace = () => {
     }
   };
 
-  const categories = ['All', 'Textiles', 'Pottery', 'Home Decor', 'Jewelry', 'Woodwork'];
+  const categories = [
+    'All',
+    'Textiles & Apparel',
+    'Pottery & Ceramics',
+    'Home & Living',
+    'Jewelry & Accessories',
+    'Woodwork',
+    'Art & Collectibles',
+    'Toys & Entertainment',
+    'Vintage',
+    'Food & Drink'
+  ];
 
   const artisan = selectedProduct?.artisan as any;
 
@@ -167,18 +178,24 @@ const Marketplace = () => {
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Categories</h3>
-                <div className="space-y-2">
+                <div className="flex flex-wrap gap-2">
                   {categories.map(category => (
                     <label key={category} className="flex items-center cursor-pointer">
-                      <input
-                        type="radio"
-                        name="category"
-                        value={category === 'All' ? '' : category}
-                        checked={category === 'All' ? !filters.category : filters.category === category}
-                        onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value || undefined }))}
-                        className="text-orange-600 focus:ring-orange-500"
-                      />
-                      <span className="ml-2 text-gray-700 dark:text-gray-300">{category}</span>
+                      <div className={`px-4 py-2 rounded-full border transition-all ${
+                        (category === 'All' ? !filters.category : filters.category === category)
+                          ? 'border-orange-600 bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:border-orange-500/50 dark:text-orange-300 font-semibold shadow-sm'
+                          : 'border-gray-300 bg-white text-gray-700 hover:border-orange-400 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-orange-500'
+                      }`}>
+                        <input
+                          type="radio"
+                          className="sr-only"
+                          name="category"
+                          value={category === 'All' ? '' : category}
+                          checked={category === 'All' ? !filters.category : filters.category === category}
+                          onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value || undefined }))}
+                        />
+                        <span className="text-sm">{category}</span>
+                      </div>
                     </label>
                   ))}
                 </div>

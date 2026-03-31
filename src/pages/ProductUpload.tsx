@@ -206,14 +206,34 @@ const ProductUpload = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {field.label}
                 </label>
-                <input
-                  type={field.type || "text"}
-                  required
-                  value={formData[field.key as keyof typeof formData]}
-                  onChange={(e) => setFormData({...formData, [field.key]: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-                  placeholder={field.placeholder}
-                />
+                {field.key === 'category' ? (
+                  <select
+                    required
+                    value={formData[field.key as keyof typeof formData]}
+                    onChange={(e) => setFormData({...formData, [field.key]: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 bg-white"
+                  >
+                    <option value="" disabled>Select a category</option>
+                    <option value="Textiles & Apparel">Textiles & Apparel</option>
+                    <option value="Pottery & Ceramics">Pottery & Ceramics</option>
+                    <option value="Home & Living">Home & Living</option>
+                    <option value="Jewelry & Accessories">Jewelry & Accessories</option>
+                    <option value="Woodwork">Woodwork</option>
+                    <option value="Art & Collectibles">Art & Collectibles</option>
+                    <option value="Toys & Entertainment">Toys & Entertainment</option>
+                    <option value="Vintage">Vintage</option>
+                    <option value="Food & Drink">Food & Drink</option>
+                  </select>
+                ) : (
+                  <input
+                    type={field.type || "text"}
+                    required
+                    value={formData[field.key as keyof typeof formData]}
+                    onChange={(e) => setFormData({...formData, [field.key]: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                    placeholder={field.placeholder}
+                  />
+                )}
               </div>
             ))}
           </div>
