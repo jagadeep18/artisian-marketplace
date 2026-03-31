@@ -26,34 +26,25 @@ const FloatingElements = () => {
   const [elements, setElements] = useState<FloatingIconProps[]>([]);
 
   useEffect(() => {
-    // Generate just 15 elements to keep it subtle
+    // Generate exactly 15 border elements
     const newElements = Array.from({ length: 15 }).map((_, i) => {
       const IconComponent = icons[Math.floor(Math.random() * icons.length)];
       const size = Math.floor(Math.random() * 16) + 12; // 12px to 28px
-      const animationDuration = Math.floor(Math.random() * 20) + 20; // 20-40s (slower)
-      const delay = (Math.random() * -40); // Negative delay
+      const animationDuration = Math.floor(Math.random() * 15) + 15; // 15-30s
+      const delay = (Math.random() * -30); // Random offset
       
-      const directions = ['floatUp', 'floatDown', 'floatLeft', 'floatRight'];
-      const direction = directions[Math.floor(Math.random() * directions.length)];
-      
-      // Restrict to the outer 10% of the screen borders
-      const isStartEdge = Math.random() > 0.5;
-      const boundaryPos = isStartEdge ? Math.random() * 10 : 90 + (Math.random() * 10);
-      
-      let positionStyle: React.CSSProperties = {};
-      if (direction === 'floatUp' || direction === 'floatDown') {
-        positionStyle = { left: `${boundaryPos}vw` };
-      } else {
-        positionStyle = { top: `${boundaryPos}vh` };
-      }
+      // Determine if it should be on the left or right border
+      const isLeft = Math.random() > 0.5;
+      const xPos = isLeft ? Math.random() * 6 + 2 : Math.random() * 6 + 92; // 2-8vw OR 92-98vw
+      const yPos = Math.random() * 90 + 5; // Spread vertically 5-95vh
 
       return {
         id: i,
         IconComponent,
         size,
-        positionStyle,
+        positionStyle: { left: `${xPos}vw`, top: `${yPos}vh` },
         animationStyle: {
-          animation: `${direction} ${animationDuration}s linear infinite`,
+          animation: `driftSubtle ${animationDuration}s ease-in-out infinite`,
           animationDelay: `${delay}s`,
         },
         colorClass: colors[Math.floor(Math.random() * colors.length)],
