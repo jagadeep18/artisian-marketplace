@@ -13,7 +13,7 @@ interface OrderItem {
   };
   quantity: number;
   totalPrice: number;
-  status: 'pending' | 'completed' | 'cancelled' | 'shipped';
+  status: 'pending' | 'accepted' | 'rejected' | 'completed' | 'cancelled' | 'shipped';
   createdAt: string;
 }
 
@@ -63,6 +63,18 @@ const Orders = () => {
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
             <Clock className="w-3.5 h-3.5 mr-1" /> Pending
+          </span>
+        );
+      case 'accepted':
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+            <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Accepted
+          </span>
+        );
+      case 'rejected':
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+            <XCircle className="w-3.5 h-3.5 mr-1" /> Rejected
           </span>
         );
       case 'shipped':
@@ -181,6 +193,12 @@ const Orders = () => {
                           </>
                         )}
                       </button>
+                    )}
+                    {(order.status === 'accepted') && (
+                      <div className="flex items-center text-sm text-blue-600 dark:text-blue-400 font-medium">
+                        <CheckCircle2 className="w-4 h-4 mr-1.5" />
+                        Artisan processing
+                      </div>
                     )}
                     {(order.status === 'shipped') && (
                       <div className="flex items-center text-sm text-blue-600 dark:text-blue-400 font-medium">

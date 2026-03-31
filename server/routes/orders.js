@@ -173,11 +173,67 @@ export const cancelOrder = async (req, res) => {
   }
 };
 
+// @route   PUT /api/orders/:id/accept
+// @desc    Accept an order (for artisans)
+export const acceptOrder = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id).populate('productId');
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    if (order.productId.artisanId.toString() !== req.userId) {
+      return res.status(403).json({ message: 'Not authorized to accept this order' });
+    }
+
+    if (order.status !== 'pending' && order.status !== 'completed') {
+      return res.status(400).json({ message: 'Order cannot be accepted in its current state' });
+    }
+
+    order.status = 'accepted';
+    await order.save();
+
+    res.status(200).json({ message: 'Order accepted successfully', order });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @route   PUT /api/orders/:id/reject
+// @desc    Reject an order (for artisans)
+export const rejectOrder = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id).populate('productId');
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    if (order.productId.artisanId.toString() !== req.userId) {
+      return res.status(403).json({ message: 'Not authorized to reject this order' });
+    }
+
+    if (order.status !== 'pending' && order.status !== 'completed') {
+      return res.status(400).json({ message: 'Order cannot be rejected in its current state' });
+    }
+
+    order.status = 'rejected';
+    await order.save();
+
+    res.status(200).json({ message: 'Order rejected successfully', order });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 router.post('/', protect, createOrder);
 router.post('/verify', protect, verifyPayment);
 router.get('/', protect, getOrders);
 router.get('/artisan/orders', protect, getArtisanOrders);
 router.get('/:id', protect, getOrder);
 router.put('/:id/cancel', protect, cancelOrder);
+router.put('/:id/accept', protect, acceptOrder);
+router.put('/:id/reject', protect, rejectOrder);
 
 export default router;

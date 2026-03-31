@@ -71,6 +71,13 @@ const Navigation = () => {
                       Dashboard
                     </Link>
                     <Link
+                      to="/artisan/orders"
+                      className="flex items-center text-gray-700 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 font-medium transition-colors"
+                    >
+                      <Package className="h-4 w-4 mr-1" />
+                      Store Orders
+                    </Link>
+                    <Link
                       to="/upload"
                       className="text-gray-700 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 font-medium transition-colors"
                     >
@@ -116,18 +123,20 @@ const Navigation = () => {
             )}
 
             {/* Cart Icon */}
-            <Link
-              to="/cart"
-              className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors mr-2"
-              aria-label="Cart"
-            >
-              <ShoppingCart className="h-5 w-5" />
-              {getCartCount() > 0 && (
-                <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-orange-600 rounded-full">
-                  {getCartCount()}
-                </span>
-              )}
-            </Link>
+            {(!user || user.role !== 'artisan') && (
+              <Link
+                to="/cart"
+                className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors mr-2"
+                aria-label="Cart"
+              >
+                <ShoppingCart className="h-5 w-5" />
+                {getCartCount() > 0 && (
+                  <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-orange-600 rounded-full">
+                    {getCartCount()}
+                  </span>
+                )}
+              </Link>
+            )}
 
             {/* Theme Toggle */}
             <button
@@ -240,6 +249,14 @@ const Navigation = () => {
                       Dashboard
                     </Link>
                     <Link
+                      to="/artisan/orders"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium"
+                    >
+                      <Package className="h-4 w-4 mr-2" />
+                      Store Orders
+                    </Link>
+                    <Link
                       to="/upload"
                       onClick={() => setMobileMenuOpen(false)}
                       className="block px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium"
@@ -325,19 +342,21 @@ const Navigation = () => {
               </>
             )}
 
-            <Link
-              to="/cart"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center w-full px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium"
-            >
-              <ShoppingCart className="h-5 w-5 mr-3" />
-              Cart
-              {getCartCount() > 0 && (
-                <span className="ml-auto bg-orange-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                  {getCartCount()}
-                </span>
-              )}
-            </Link>
+            {(!user || user.role !== 'artisan') && (
+              <Link
+                to="/cart"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center w-full px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium"
+              >
+                <ShoppingCart className="h-5 w-5 mr-3" />
+                Cart
+                {getCartCount() > 0 && (
+                  <span className="ml-auto bg-orange-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                    {getCartCount()}
+                  </span>
+                )}
+              </Link>
+            )}
 
             <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
 

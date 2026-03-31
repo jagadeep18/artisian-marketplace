@@ -149,6 +149,20 @@ export const apiService = {
     return data;
   },
 
+  async acceptOrder(id) {
+    const data = await this.request(`/orders/${id}/accept`, {
+      method: 'PUT',
+    });
+    return data;
+  },
+
+  async rejectOrder(id) {
+    const data = await this.request(`/orders/${id}/reject`, {
+      method: 'PUT',
+    });
+    return data;
+  },
+
   async getArtisanOrders() {
     const data = await this.request('/orders/artisan/orders');
     return data.orders;
