@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { Palette, Moon, Sun, LogOut, User, Store, Settings, Menu, X, Heart, FileText } from 'lucide-react';
+import { Palette, Moon, Sun, LogOut, User, Store, Settings, Menu, X, Heart, FileText, ShoppingCart } from 'lucide-react';
+import { useCart } from '../contexts/CartContext';
 
 const Navigation = () => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const { getCartCount } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
@@ -105,6 +107,20 @@ const Navigation = () => {
                 </Link>
               </>
             )}
+
+            {/* Cart Icon */}
+            <Link
+              to="/cart"
+              className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors mr-2"
+              aria-label="Cart"
+            >
+              <ShoppingCart className="h-5 w-5" />
+              {getCartCount() > 0 && (
+                <span className="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-orange-600 rounded-full">
+                  {getCartCount()}
+                </span>
+              )}
+            </Link>
 
             {/* Theme Toggle */}
             <button
@@ -293,6 +309,20 @@ const Navigation = () => {
                 </Link>
               </>
             )}
+
+            <Link
+              to="/cart"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center w-full px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium"
+            >
+              <ShoppingCart className="h-5 w-5 mr-3" />
+              Cart
+              {getCartCount() > 0 && (
+                <span className="ml-auto bg-orange-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                  {getCartCount()}
+                </span>
+              )}
+            </Link>
 
             <div className="border-t border-gray-200 dark:border-gray-700 my-2"></div>
 

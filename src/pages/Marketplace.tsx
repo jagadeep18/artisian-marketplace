@@ -3,10 +3,12 @@ import { Search, Filter, MapPin, Star, Heart, ShoppingBag, Phone, Mail, X } from
 import { Product, ProductFilters } from '../types';
 import { apiService } from '../services/apiService';
 import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
 import TrustScoreCard from '../components/TrustScoreCard';
 
 const Marketplace = () => {
   const { user } = useAuth();
+  const { addToCart } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [filters, setFilters] = useState<ProductFilters>({});
@@ -317,7 +319,14 @@ const Marketplace = () => {
                         <div>
                           <span className="text-2xl font-bold text-gray-900 dark:text-white">₹{product.price?.toLocaleString()}</span>
                         </div>
-                        <button className="flex items-center px-4 py-2 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToCart(product, 1);
+                            alert('Added to cart!');
+                          }}
+                          className="flex items-center px-4 py-2 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors"
+                        >
                           <ShoppingBag className="h-4 w-4 mr-2" />
                           Add to Cart
                         </button>
@@ -433,7 +442,14 @@ const Marketplace = () => {
                   )}
                   
                   <div className="flex space-x-4">
-                    <button className="flex-1 bg-orange-600 text-white font-semibold py-3 rounded-lg hover:bg-orange-700 transition-colors">
+                    <button
+                      onClick={() => {
+                        addToCart(selectedProduct, 1);
+                        alert('Added to cart!');
+                        setSelectedProduct(null);
+                      }}
+                      className="flex-1 bg-orange-600 text-white font-semibold py-3 rounded-lg hover:bg-orange-700 transition-colors"
+                    >
                       Add to Cart
                     </button>
                     <button
@@ -462,14 +478,20 @@ const Marketplace = () => {
       {/* Image Zoom Modal */}
       {zoomedImage && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[60] cursor-zoom-out"
+          className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-[70] cursor-zoom-out transition-opacity"
           onClick={() => setZoomedImage(null)}
-          onMouseLeave={() => setZoomedImage(null)}
         >
+          <button
+            onClick={() => setZoomedImage(null)}
+            className="absolute top-6 right-6 p-2 bg-white/10 text-white rounded-full hover:bg-white/20 transition-colors z-[80]"
+          >
+            <X className="h-8 w-8" />
+          </button>
           <img
             src={zoomedImage}
             alt="Zoomed"
-            className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+            className="max-w-[95vw] max-h-[95vh] w-auto h-auto object-contain shadow-2xl transition-transform duration-300 transform scale-100 hover:scale-[1.02] cursor-default"
+            onClick={(e) => e.stopPropagation()}
           />
         </div>
       )}

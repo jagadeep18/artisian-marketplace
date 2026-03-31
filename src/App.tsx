@@ -15,6 +15,7 @@ import MarketingTools from './pages/MarketingTools';
 import Profile from './pages/Profile';
 import Favourites from './pages/Favourites';
 import SavedContent from './pages/SavedContent';
+import Cart from './pages/Cart';
 
 function AppContent() {
   const { user } = useAuth();
@@ -32,12 +33,7 @@ function AppContent() {
           path="/register" 
           element={user ? <Navigate to={user.role === 'artisan' ? '/artisan-dashboard' : '/marketplace'} /> : <Register />} 
         />
-        <Route 
-          path="/marketplace" 
-          element={
-            <Marketplace />
-          } 
-        />
+        <Route path="/marketplace" element={<Marketplace />} />
         <Route 
           path="/artisan-dashboard" 
           element={
@@ -86,6 +82,7 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
+        <Route path="/cart" element={<Cart />} />
       </Routes>
     </div>
   );
