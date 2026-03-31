@@ -8,9 +8,8 @@ interface FloatingIconProps {
   id: number;
   IconComponent: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   size: number;
-  left: number;
-  animationDuration: number;
-  delay: number;
+  positionStyle: React.CSSProperties;
+  animationStyle: React.CSSProperties;
   colorClass: string;
 }
 
@@ -27,16 +26,32 @@ const FloatingElements = () => {
   const [elements, setElements] = useState<FloatingIconProps[]>([]);
 
   useEffect(() => {
-    // Generate 35 random animated elements for dense, continuous coverage
-    const newElements = Array.from({ length: 35 }).map((_, i) => {
+    // Generate 45 random animated elements for continuous coverage from all sides
+    const newElements = Array.from({ length: 45 }).map((_, i) => {
       const IconComponent = icons[Math.floor(Math.random() * icons.length)];
+      const size = Math.floor(Math.random() * 20) + 12; // 12px to 32px
+      const animationDuration = Math.floor(Math.random() * 15) + 15; // 15-30s
+      const delay = (Math.random() * -30); // Negative delay
+      
+      const directions = ['floatUp', 'floatDown', 'floatLeft', 'floatRight'];
+      const direction = directions[Math.floor(Math.random() * directions.length)];
+      
+      let positionStyle: React.CSSProperties = {};
+      if (direction === 'floatUp' || direction === 'floatDown') {
+        positionStyle = { left: `${Math.random() * 100}vw` };
+      } else {
+        positionStyle = { top: `${Math.random() * 100}vh` };
+      }
+
       return {
         id: i,
         IconComponent,
-        size: Math.floor(Math.random() * 20) + 12, // Size between 12px and 32px
-        left: Math.floor(Math.random() * 100), // Random left position (0-100vw)
-        animationDuration: Math.floor(Math.random() * 15) + 10, // Faster duration: 10-25s
-        delay: (Math.random() * -30), // Negative delay: already in the middle of animation
+        size,
+        positionStyle,
+        animationStyle: {
+          animation: `${direction} ${animationDuration}s linear infinite`,
+          animationDelay: `${delay}s`,
+        },
         colorClass: colors[Math.floor(Math.random() * colors.length)],
       };
     });
@@ -51,11 +66,10 @@ const FloatingElements = () => {
         return (
           <div
             key={el.id}
-            className={`absolute bottom-[-50px] opacity-0 ${el.colorClass}`}
+            className={`absolute z-50 opacity-0 ${el.colorClass}`}
             style={{
-              left: `${el.left}vw`,
-              animation: `floatUp ${el.animationDuration}s linear infinite`,
-              animationDelay: `${el.delay}s`,
+              ...el.positionStyle,
+              ...el.animationStyle,
             }}
           >
             <Icon 
