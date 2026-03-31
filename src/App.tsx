@@ -26,10 +26,10 @@ function AppContent() {
   return (
     <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200 overflow-hidden font-sans">
       {/* Global Animated Background Elements */}
-      <div className="fixed inset-0 w-full h-full pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[30rem] h-[30rem] bg-orange-300 rounded-full mix-blend-multiply filter blur-[100px] opacity-40 animate-blob dark:bg-orange-900 dark:opacity-30 dark:mix-blend-screen"></div>
-        <div className="absolute top-[20%] right-[-10%] w-[25rem] h-[25rem] bg-amber-300 rounded-full mix-blend-multiply filter blur-[80px] opacity-40 animate-blob animation-delay-2000 dark:bg-yellow-800 dark:opacity-30 dark:mix-blend-screen"></div>
-        <div className="absolute bottom-[-20%] left-[20%] w-[35rem] h-[35rem] bg-pink-300 rounded-full mix-blend-multiply filter blur-[120px] opacity-30 animate-blob animation-delay-4000 dark:bg-fuchsia-900 dark:opacity-20 dark:mix-blend-screen"></div>
+      <div className="fixed inset-0 w-full h-full pointer-events-none z-40 overflow-hidden">
+        <div className="absolute top-[-10%] left-[-10%] w-[30rem] h-[30rem] bg-orange-300 rounded-full mix-blend-multiply filter blur-[100px] opacity-30 animate-blob dark:bg-orange-900 dark:opacity-20 dark:mix-blend-screen"></div>
+        <div className="absolute top-[20%] right-[-10%] w-[25rem] h-[25rem] bg-amber-300 rounded-full mix-blend-multiply filter blur-[80px] opacity-30 animate-blob animation-delay-2000 dark:bg-yellow-800 dark:opacity-20 dark:mix-blend-screen"></div>
+        <div className="absolute bottom-[-20%] left-[20%] w-[35rem] h-[35rem] bg-pink-300 rounded-full mix-blend-multiply filter blur-[120px] opacity-20 animate-blob animation-delay-4000 dark:bg-fuchsia-900 dark:opacity-10 dark:mix-blend-screen"></div>
       </div>
       
       {/* Floating Sparkles and Artisan Tools */}

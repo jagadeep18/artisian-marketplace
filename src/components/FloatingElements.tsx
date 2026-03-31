@@ -45,7 +45,7 @@ const FloatingElements = () => {
   }, []);
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+    <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden" aria-hidden="true">
       {elements.map((el) => {
         const Icon = el.IconComponent;
         return (
