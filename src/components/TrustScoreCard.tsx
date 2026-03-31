@@ -25,6 +25,8 @@ interface TrustData {
       socialPresence: string;
     };
     profileCompleteness: number;
+    pricingRealism: number;
+    productConsistency: number;
     aiAnalysis: string;
     lastAnalyzed: string;
   };
@@ -161,13 +163,45 @@ const TrustScoreCard: React.FC<TrustScoreProps> = ({ artisanId, compact = false 
         </div>
       </div>
 
-      {/* AI analysis summary */}
+      {/* AI analysis summary — fully displayed */}
       {ts.aiAnalysis && (
-        <div className="p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
-          <p className="text-xs font-medium text-gray-500 mb-1">🧠 AI Analysis</p>
-          <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-3">{ts.aiAnalysis}</p>
+        <div className="p-4 bg-white/60 dark:bg-gray-800/60 rounded-lg border border-gray-200/50 dark:border-gray-600/50">
+          <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2 flex items-center">
+            🧠 AI Trust Analysis Report
+          </p>
+          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+            {ts.aiAnalysis}
+          </p>
         </div>
       )}
+
+      {/* Detailed Scores */}
+      <div className="p-4 bg-white/40 dark:bg-gray-800/40 rounded-lg space-y-3">
+        <p className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1">📊 Detailed Scores</p>
+
+        <ScoreBar label="Profile Completeness" value={ts.profileCompleteness} />
+        <ScoreBar label="Pricing Realism" value={ts.pricingRealism ?? 50} />
+        <ScoreBar label="Product Consistency" value={ts.productConsistency ?? 50} />
+
+        {ts.verification?.socialPresence && ts.verification.socialPresence !== 'NONE' && (
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-600 dark:text-gray-400">Social Presence</span>
+            <span className={`font-medium px-2 py-0.5 rounded-full text-xs ${
+              ts.verification.socialPresence === 'HIGH' ? 'bg-green-100 text-green-700' :
+              ts.verification.socialPresence === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
+              'bg-gray-100 text-gray-600'
+            }`}>
+              {ts.verification.socialPresence}
+            </span>
+          </div>
+        )}
+
+        {ts.lastAnalyzed && (
+          <p className="text-xs text-gray-400 mt-2">
+            Last analyzed: {new Date(ts.lastAnalyzed).toLocaleString()}
+          </p>
+        )}
+      </div>
 
       {/* Fraud warning */}
       {ts.fraudRisk === 'HIGH' && (
@@ -175,6 +209,15 @@ const TrustScoreCard: React.FC<TrustScoreProps> = ({ artisanId, compact = false 
           <p className="text-sm text-red-800 dark:text-red-300 font-medium flex items-center">
             <AlertTriangle className="h-4 w-4 mr-1.5" />
             ⚠️ This seller is under verification. Payment protection recommended.
+          </p>
+        </div>
+      )}
+
+      {ts.fraudRisk === 'MEDIUM' && (
+        <div className="p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg border border-yellow-200 dark:border-yellow-800">
+          <p className="text-sm text-yellow-800 dark:text-yellow-300 font-medium flex items-center">
+            <AlertTriangle className="h-4 w-4 mr-1.5" />
+            ⚠️ Moderate risk detected. Platform escrow is recommended for safe transactions.
           </p>
         </div>
       )}
@@ -189,5 +232,23 @@ const VerifyItem: React.FC<{ icon: any; label: string; verified?: boolean }> = (
     {verified ? <CheckCircle2 className="h-3 w-3 ml-auto" /> : <XCircle className="h-3 w-3 ml-auto opacity-40" />}
   </div>
 );
+
+const ScoreBar: React.FC<{ label: string; value: number }> = ({ label, value }) => {
+  const barColor = value >= 70 ? 'bg-green-500' : value >= 40 ? 'bg-yellow-500' : 'bg-red-500';
+  return (
+    <div>
+      <div className="flex items-center justify-between text-sm mb-1">
+        <span className="text-gray-600 dark:text-gray-400">{label}</span>
+        <span className="font-medium text-gray-800 dark:text-gray-200">{value}%</span>
+      </div>
+      <div className="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-700 ${barColor}`}
+          style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
+        />
+      </div>
+    </div>
+  );
+};
 
 export default TrustScoreCard;
