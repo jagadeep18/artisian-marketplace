@@ -26,21 +26,25 @@ const FloatingElements = () => {
   const [elements, setElements] = useState<FloatingIconProps[]>([]);
 
   useEffect(() => {
-    // Generate 45 random animated elements for continuous coverage from all sides
-    const newElements = Array.from({ length: 45 }).map((_, i) => {
+    // Generate just 15 elements to keep it subtle
+    const newElements = Array.from({ length: 15 }).map((_, i) => {
       const IconComponent = icons[Math.floor(Math.random() * icons.length)];
-      const size = Math.floor(Math.random() * 20) + 12; // 12px to 32px
-      const animationDuration = Math.floor(Math.random() * 15) + 15; // 15-30s
-      const delay = (Math.random() * -30); // Negative delay
+      const size = Math.floor(Math.random() * 16) + 12; // 12px to 28px
+      const animationDuration = Math.floor(Math.random() * 20) + 20; // 20-40s (slower)
+      const delay = (Math.random() * -40); // Negative delay
       
       const directions = ['floatUp', 'floatDown', 'floatLeft', 'floatRight'];
       const direction = directions[Math.floor(Math.random() * directions.length)];
       
+      // Restrict to the outer 10% of the screen borders
+      const isStartEdge = Math.random() > 0.5;
+      const boundaryPos = isStartEdge ? Math.random() * 10 : 90 + (Math.random() * 10);
+      
       let positionStyle: React.CSSProperties = {};
       if (direction === 'floatUp' || direction === 'floatDown') {
-        positionStyle = { left: `${Math.random() * 100}vw` };
+        positionStyle = { left: `${boundaryPos}vw` };
       } else {
-        positionStyle = { top: `${Math.random() * 100}vh` };
+        positionStyle = { top: `${boundaryPos}vh` };
       }
 
       return {
@@ -66,7 +70,7 @@ const FloatingElements = () => {
         return (
           <div
             key={el.id}
-            className={`absolute z-50 opacity-0 ${el.colorClass}`}
+            className={`absolute z-0 opacity-0 ${el.colorClass}`}
             style={{
               ...el.positionStyle,
               ...el.animationStyle,
