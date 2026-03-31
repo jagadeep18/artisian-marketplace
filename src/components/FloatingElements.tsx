@@ -26,25 +26,27 @@ const FloatingElements = () => {
   const [elements, setElements] = useState<FloatingIconProps[]>([]);
 
   useEffect(() => {
-    // Generate exactly 15 border elements
-    const newElements = Array.from({ length: 15 }).map((_, i) => {
+    // Generate 20 border elements for a visible but non-intrusive flow
+    const newElements = Array.from({ length: 20 }).map((_, i) => {
       const IconComponent = icons[Math.floor(Math.random() * icons.length)];
       const size = Math.floor(Math.random() * 16) + 12; // 12px to 28px
-      const animationDuration = Math.floor(Math.random() * 15) + 15; // 15-30s
-      const delay = (Math.random() * -30); // Random offset
+      const animationDuration = Math.floor(Math.random() * 20) + 15; // 15-35s
+      const delay = (Math.random() * -35); // Random offset so they appear immediately
       
-      // Determine if it should be on the left or right border
+      const directions = ['travelUp', 'travelDown'];
+      const direction = directions[Math.floor(Math.random() * directions.length)];
+      
+      // Determine if it should be locked to the left or right border
       const isLeft = Math.random() > 0.5;
-      const xPos = isLeft ? Math.random() * 6 + 2 : Math.random() * 6 + 92; // 2-8vw OR 92-98vw
-      const yPos = Math.random() * 90 + 5; // Spread vertically 5-95vh
+      const xPos = isLeft ? Math.random() * 6 + 1 : Math.random() * 6 + 93; // 1-7vw OR 93-99vw
 
       return {
         id: i,
         IconComponent,
         size,
-        positionStyle: { left: `${xPos}vw`, top: `${yPos}vh` },
+        positionStyle: { left: `${xPos}vw` }, // Only lock X axis, animation handles Y axis
         animationStyle: {
-          animation: `driftSubtle ${animationDuration}s ease-in-out infinite`,
+          animation: `${direction} ${animationDuration}s linear infinite`,
           animationDelay: `${delay}s`,
         },
         colorClass: colors[Math.floor(Math.random() * colors.length)],
