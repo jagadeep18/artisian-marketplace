@@ -27,16 +27,16 @@ const FloatingElements = () => {
   const [elements, setElements] = useState<FloatingIconProps[]>([]);
 
   useEffect(() => {
-    // Generate 15 random animated elements
-    const newElements = Array.from({ length: 15 }).map((_, i) => {
+    // Generate 35 random animated elements for dense, continuous coverage
+    const newElements = Array.from({ length: 35 }).map((_, i) => {
       const IconComponent = icons[Math.floor(Math.random() * icons.length)];
       return {
         id: i,
         IconComponent,
-        size: Math.floor(Math.random() * 24) + 16, // Size between 16px and 40px
+        size: Math.floor(Math.random() * 20) + 12, // Size between 12px and 32px
         left: Math.floor(Math.random() * 100), // Random left position (0-100vw)
-        animationDuration: Math.floor(Math.random() * 10) + 15, // Duration 15-25s
-        delay: Math.floor(Math.random() * 15), // Random delay
+        animationDuration: Math.floor(Math.random() * 15) + 10, // Faster duration: 10-25s
+        delay: (Math.random() * -30), // Negative delay: already in the middle of animation
         colorClass: colors[Math.floor(Math.random() * colors.length)],
       };
     });
