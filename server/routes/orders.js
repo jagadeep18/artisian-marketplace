@@ -144,10 +144,40 @@ export const getArtisanOrders = async (req, res) => {
   }
 };
 
+// @route   PUT /api/orders/:id/cancel
+// @desc    Cancel an order
+export const cancelOrder = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    // Check if user is the client who placed the order
+    if (order.clientId.toString() !== req.userId) {
+      return res.status(403).json({ message: 'Not authorized to cancel this order' });
+    }
+
+    // Only allow cancelling if order is pending
+    if (order.status !== 'pending' && order.status !== 'completed') {
+      return res.status(400).json({ message: 'Order cannot be cancelled in its current state' });
+    }
+
+    order.status = 'cancelled';
+    await order.save();
+
+    res.status(200).json({ message: 'Order cancelled successfully', order });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 router.post('/', protect, createOrder);
 router.post('/verify', protect, verifyPayment);
 router.get('/', protect, getOrders);
 router.get('/artisan/orders', protect, getArtisanOrders);
 router.get('/:id', protect, getOrder);
+router.put('/:id/cancel', protect, cancelOrder);
 
 export default router;

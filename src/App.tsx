@@ -16,6 +16,7 @@ import Profile from './pages/Profile';
 import Favourites from './pages/Favourites';
 import SavedContent from './pages/SavedContent';
 import Cart from './pages/Cart';
+import Orders from './pages/Orders';
 
 function AppContent() {
   const { user } = useAuth();
@@ -79,6 +80,14 @@ function AppContent() {
           element={
             <ProtectedRoute requiredRole="artisan">
               <SavedContent />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <ProtectedRoute>
+              <Orders />
             </ProtectedRoute>
           }
         />

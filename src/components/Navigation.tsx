@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { Palette, Moon, Sun, LogOut, User, Store, Settings, Menu, X, Heart, FileText, ShoppingCart } from 'lucide-react';
+import { Palette, Moon, Sun, LogOut, User, Store, Settings, Menu, X, Heart, FileText, ShoppingCart, Package } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 
 const Navigation = () => {
@@ -53,6 +53,13 @@ const Navigation = () => {
                     >
                       <Heart className="h-4 w-4 mr-1" />
                       Favourites
+                    </Link>
+                    <Link
+                      to="/orders"
+                      className="flex items-center text-gray-700 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 font-medium transition-colors"
+                    >
+                      <Package className="h-4 w-4 mr-1" />
+                      My Orders
                     </Link>
                   </>
                 ) : (
@@ -213,6 +220,14 @@ const Navigation = () => {
                     >
                       <Heart className="h-4 w-4 mr-2 text-red-500" />
                       Favourites
+                    </Link>
+                    <Link
+                      to="/orders"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 font-medium"
+                    >
+                      <Package className="h-4 w-4 mr-2" />
+                      My Orders
                     </Link>
                   </>
                 ) : (

@@ -142,6 +142,13 @@ export const apiService = {
     return data.order;
   },
 
+  async cancelOrder(id) {
+    const data = await this.request(`/orders/${id}/cancel`, {
+      method: 'PUT',
+    });
+    return data;
+  },
+
   async getArtisanOrders() {
     const data = await this.request('/orders/artisan/orders');
     return data.orders;

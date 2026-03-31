@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Trash2, Plus, Minus, ArrowLeft, CreditCard, Truck, Shield, CheckCircle2, Package } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
+import { apiService } from '../services/apiService';
 
 const Cart = () => {
   const { items, removeFromCart, updateQuantity, clearCart, getTotal, getCartCount } = useCart();
@@ -11,6 +12,7 @@ const Cart = () => {
   const [showCheckout, setShowCheckout] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'cod'>('upi');
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [placingOrder, setPlacingOrder] = useState(false);
   const [formData, setFormData] = useState({
     fullName: (user as any)?.fullName || '',
     phone: (user as any)?.mobileNumber || '',
@@ -32,13 +34,29 @@ const Cart = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate order placement
-    setOrderPlaced(true);
-    setTimeout(() => {
-      clearCart();
-    }, 500);
+    if (placingOrder) return;
+    
+    try {
+      setPlacingOrder(true);
+      // Create an order for each item in the cart
+      for (const item of items) {
+        await apiService.createOrder({
+          productId: item.product.id,
+          quantity: item.quantity,
+          totalPrice: item.product.price * item.quantity,
+        });
+      }
+      setOrderPlaced(true);
+      setTimeout(() => {
+        clearCart();
+      }, 500);
+    } catch (error: any) {
+      alert(error.message || 'Failed to place order');
+    } finally {
+      setPlacingOrder(false);
+    }
   };
 
   if (orderPlaced) {
@@ -294,9 +312,14 @@ const Cart = () => {
 
                   <button
                     type="submit"
-                    className="w-full bg-green-600 text-white font-semibold py-3.5 rounded-lg hover:bg-green-700 transition-all transform hover:scale-[1.02] shadow-md"
+                    disabled={placingOrder}
+                    className="w-full bg-green-600 text-white font-semibold py-3.5 rounded-lg hover:bg-green-700 transition-all transform hover:scale-[1.02] shadow-md disabled:bg-green-400 disabled:transform-none flex justify-center items-center"
                   >
-                    Place Order — ₹{total.toLocaleString()}
+                    {placingOrder ? (
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    ) : (
+                      `Place Order — ₹${total.toLocaleString()}`
+                    )}
                   </button>
 
                   <button
