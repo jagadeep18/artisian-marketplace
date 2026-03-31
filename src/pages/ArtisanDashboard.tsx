@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Eye, TrendingUp, Users, DollarSign, BarChart3, CreditCard as Edit, Trash2, Sparkles } from 'lucide-react';
+import { Plus, Eye, TrendingUp, Users, DollarSign, BarChart3, CreditCard as Edit, Trash2, Sparkles, Shield } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Product, Artisan } from '../types';
 import { apiService } from '../services/apiService';
+import TrustScoreCard from '../components/TrustScoreCard';
 
 const ArtisanDashboard = () => {
   const { user } = useAuth();
@@ -119,6 +120,34 @@ const ArtisanDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Trust Score Section */}
+      {artisan?.id && (
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+              <Shield className="h-6 w-6 mr-2 text-blue-600" />
+              AI Trust Score & Verification
+            </h2>
+            <button
+              onClick={async () => {
+                try {
+                  await apiService.analyzeTrustScore(artisan.id);
+                  alert('Trust score analysis complete! Refresh to see results.');
+                  window.location.reload();
+                } catch (err: any) {
+                  alert('Analysis failed: ' + err.message);
+                }
+              }}
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all text-sm"
+            >
+              <Sparkles className="h-4 w-4 mr-1.5" />
+              Analyze Now
+            </button>
+          </div>
+          <TrustScoreCard artisanId={artisan.id} />
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

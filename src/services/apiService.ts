@@ -169,4 +169,22 @@ export const apiService = {
   async removeFavourite(productId) {
     await this.request(`/favourites/${productId}`, { method: 'DELETE' });
   },
+
+  // Trust Score endpoints
+  async getTrustScore(artisanId) {
+    const data = await this.request(`/trust/${artisanId}`);
+    return data;
+  },
+
+  async analyzeTrustScore(artisanId) {
+    const data = await this.request(`/trust/analyze/${artisanId}`, {
+      method: 'POST',
+    });
+    return data;
+  },
+
+  async getPaymentRecommendation(artisanId) {
+    const data = await this.request(`/trust/payment-recommendation/${artisanId}`);
+    return data;
+  },
 };

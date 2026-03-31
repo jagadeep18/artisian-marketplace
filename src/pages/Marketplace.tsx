@@ -3,6 +3,7 @@ import { Search, Filter, MapPin, Star, Heart, ShoppingBag, Phone, Mail, X } from
 import { Product, ProductFilters } from '../types';
 import { apiService } from '../services/apiService';
 import { useAuth } from '../contexts/AuthContext';
+import TrustScoreCard from '../components/TrustScoreCard';
 
 const Marketplace = () => {
   const { user } = useAuth();
@@ -422,6 +423,14 @@ const Marketplace = () => {
                       <p className="text-gray-500 dark:text-gray-400 text-sm">Artisan information not available</p>
                     )}
                   </div>
+
+                  {/* Trust Score Section */}
+                  {artisan && (artisan._id || artisan.id) && (
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Trust & Safety</h3>
+                      <TrustScoreCard artisanId={artisan._id || artisan.id} />
+                    </div>
+                  )}
                   
                   <div className="flex space-x-4">
                     <button className="flex-1 bg-orange-600 text-white font-semibold py-3 rounded-lg hover:bg-orange-700 transition-colors">

@@ -122,6 +122,7 @@ export const getMe = async (req, res) => {
         verified: user.verified,
         rating: user.rating,
         totalReviews: user.totalReviews,
+        trustScore: user.trustScore,
       },
     });
   } catch (error) {

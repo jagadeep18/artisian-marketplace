@@ -6,6 +6,7 @@ import authRoutes from './routes/auth.js';
 import productRoutes from './routes/products.js';
 import orderRoutes from './routes/orders.js';
 import favouriteRoutes from './routes/favourites.js';
+import trustRoutes from './routes/trust.js';
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/favourites', favouriteRoutes);
+app.use('/api/trust', trustRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
